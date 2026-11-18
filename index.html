@@ -23,7 +23,7 @@
     header {
       background: #086b43;
       color: white;
-      padding: 22px;
+      padding: 22px 15px;
       text-align: center;
     }
 
@@ -39,7 +39,7 @@
 
     main {
       max-width: 580px;
-      margin: 75px auto;
+      margin: 65px auto;
       padding: 0 20px;
     }
 
@@ -47,7 +47,7 @@
       background: white;
       border: 1px solid #e0e6eb;
       border-radius: 14px;
-      padding: 38px 30px;
+      padding: 38px 25px;
       text-align: center;
       box-shadow: 0 4px 18px
         rgba(0, 0, 0, 0.05);
@@ -74,11 +74,36 @@
       font-size: 15px;
     }
 
+    #botaoGoogle {
+      display: flex;
+      justify-content: center;
+      margin: 30px auto 20px;
+      min-height: 44px;
+    }
+
+    #resultadoLogin {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #657487;
+      margin-top: 15px;
+      white-space: pre-line;
+    }
+
+    #resultadoLogin.sucesso {
+      color: #086b43;
+      font-weight: bold;
+    }
+
+    #resultadoLogin.erro {
+      color: #b3261e;
+    }
+
     .aviso {
       background: #f3f6f8;
       padding: 15px;
       border-radius: 8px;
-      font-size: 14px;
+      font-size: 13px;
+      line-height: 1.6;
       margin-top: 25px;
     }
 
@@ -108,16 +133,22 @@
       <h2>Bem-vindo ao sistema</h2>
 
       <p class="descricao">
-        Plataforma em desenvolvimento para
-        registro e acompanhamento de
-        ocorrências disciplinares.
+        Identifique-se com sua conta Google
+        para realizar o teste de autenticação.
+      </p>
+
+      <div id="botaoGoogle"></div>
+
+      <p id="resultadoLogin"
+         role="status"
+         aria-live="polite">
+        Carregando autenticação Google...
       </p>
 
       <div class="aviso">
-        A autenticação Google ainda está
-        sendo configurada.
-        <br>
-        Nenhum dado real é exibido nesta página.
+        Este é um ambiente de testes.
+        Nenhum acesso aos registros disciplinares
+        será concedido nesta etapa.
       </div>
 
     </section>
@@ -126,6 +157,102 @@
   <footer>
     Sistema Disciplinar IFPB - Versão de testes
   </footer>
+
+  <script>
+    const CLIENT_ID =
+      "473379887715-iklvlsh8nj3i9vf5fb3oamfrb6t7jf9j.apps.googleusercontent.com";
+
+    function mostrarStatus(mensagem, tipo = "") {
+      const saida =
+        document.getElementById("resultadoLogin");
+
+      saida.textContent = mensagem;
+      saida.className = tipo;
+    }
+
+    function receberRespostaGoogle(resposta) {
+
+      if (!resposta || !resposta.credential) {
+        mostrarStatus(
+          "O Google não retornou uma credencial.",
+          "erro"
+        );
+        return;
+      }
+
+      // Teste de recebimento da resposta.
+      // A credencial não é armazenada, exibida
+      // nem enviada para nenhum servidor.
+
+      mostrarStatus(
+        "Resposta de identificação recebida do Google!\n" +
+        "Teste de interface concluído.\n" +
+        "A validação no servidor ainda está pendente.",
+        "sucesso"
+      );
+    }
+
+    function iniciarGoogle() {
+
+      if (!window.google ||
+          !google.accounts ||
+          !google.accounts.id) {
+
+        mostrarStatus(
+          "Não foi possível carregar o Login com Google.",
+          "erro"
+        );
+        return;
+      }
+
+      try {
+
+        google.accounts.id.initialize({
+          client_id: CLIENT_ID,
+          callback: receberRespostaGoogle,
+          ux_mode: "popup",
+          auto_select: false
+        });
+
+        google.accounts.id.renderButton(
+          document.getElementById("botaoGoogle"),
+          {
+            theme: "outline",
+            size: "large",
+            text: "signin_with",
+            shape: "pill",
+            locale: "pt-BR"
+          }
+        );
+
+        mostrarStatus(
+          "Selecione sua conta Google para testar."
+        );
+
+      } catch (erro) {
+
+        mostrarStatus(
+          "Erro ao iniciar a autenticação Google.",
+          "erro"
+        );
+      }
+    }
+
+    function falhaGoogle() {
+      mostrarStatus(
+        "Não foi possível carregar os serviços do Google.",
+        "erro"
+      );
+    }
+  </script>
+
+  <script
+    src="https://accounts.google.com/gsi/client"
+    async
+    defer
+    onload="iniciarGoogle()"
+    onerror="falhaGoogle()">
+  </script>
 
 </body>
 </html>
